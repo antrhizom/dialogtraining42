@@ -455,7 +455,13 @@ export default function Home() {
   if (screen === "evaluation" && evaluationData) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-8">
-        <Evaluation data={evaluationData} onRestart={restart} />
+        <Evaluation
+          data={evaluationData}
+          topic={selectedTopic?.label ?? ""}
+          situation={selectedSituation?.label ?? ""}
+          person={selectedPerson?.label ?? ""}
+          onRestart={restart}
+        />
       </main>
     );
   }

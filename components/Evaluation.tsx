@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import Certificate from "./Certificate";
+
 export interface EvaluationData {
   grammatik: number;
   wortschatz: number;
@@ -14,6 +17,9 @@ export interface EvaluationData {
 
 interface EvaluationProps {
   data: EvaluationData;
+  topic: string;
+  situation: string;
+  person: string;
   onRestart: () => void;
 }
 
@@ -72,116 +78,187 @@ function ScoreBar({
   );
 }
 
-export default function Evaluation({ data, onRestart }: EvaluationProps) {
+export default function Evaluation({
+  data,
+  topic,
+  situation,
+  person,
+  onRestart,
+}: EvaluationProps) {
+  const [showCertificate, setShowCertificate] = useState(false);
+  const [studentName, setStudentName] = useState("");
+
+  const today = new Date().toLocaleDateString("de-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <div className="text-5xl mb-3">
-          {data.gesamt >= 4 ? "🎉" : data.gesamt >= 3 ? "👍" : "💪"}
+      {/* ─── Evaluation Content (hidden when printing) ─── */}
+      <div className="print:hidden space-y-6">
+        {/* Header */}
+        <div className="text-center">
+          <div className="text-5xl mb-3">
+            {data.gesamt >= 4 ? "🎉" : data.gesamt >= 3 ? "👍" : "💪"}
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800">
+            Dialog-Bewertung
+          </h2>
+          <p className="text-gray-500 mt-1">{data.zusammenfassung}</p>
         </div>
-        <h2 className="text-2xl font-bold text-gray-800">Dialog-Bewertung</h2>
-        <p className="text-gray-500 mt-1">{data.zusammenfassung}</p>
-      </div>
 
-      {/* Overall score */}
-      <div className="bg-white rounded-2xl border p-6 text-center">
-        <p className="text-sm text-gray-500 mb-1">Gesamtnote</p>
-        <div className="flex items-center justify-center gap-2">
-          <span className="text-4xl font-bold text-gray-800">
-            {data.gesamt.toFixed(1)}
-          </span>
-          <span className="text-2xl text-gray-400">/ 5</span>
-        </div>
-        <div className="flex justify-center mt-2">
-          <Stars count={data.gesamt} />
-        </div>
-      </div>
-
-      {/* Individual scores */}
-      <div className="bg-white rounded-2xl border p-6 space-y-4">
-        <h3 className="font-semibold text-gray-700 mb-2">Einzelbewertung</h3>
-        <ScoreBar label="Grammatik" icon="⭐" score={data.grammatik} />
-        <ScoreBar label="Wortschatz" icon="📚" score={data.wortschatz} />
-        <ScoreBar label="Kommunikation" icon="💬" score={data.kommunikation} />
-        <ScoreBar label="Aufgabenbewältigung" icon="🎯" score={data.aufgabe} />
-      </div>
-
-      {/* Strengths */}
-      {data.staerken?.length > 0 && (
-        <div className="bg-green-50 rounded-2xl border border-green-200 p-6">
-          <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
-            <span>✅</span> Das hast du gut gemacht
-          </h3>
-          <ul className="space-y-2">
-            {data.staerken.map((s, i) => (
-              <li
-                key={i}
-                className="text-sm text-green-700 flex items-start gap-2"
-              >
-                <span className="mt-0.5">•</span>
-                <span>{s}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Improvements */}
-      {data.verbesserungen?.length > 0 && (
-        <div className="bg-blue-50 rounded-2xl border border-blue-200 p-6">
-          <h3 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-            <span>💡</span> Tipps zur Verbesserung
-          </h3>
-          <ul className="space-y-2">
-            {data.verbesserungen.map((v, i) => (
-              <li
-                key={i}
-                className="text-sm text-blue-700 flex items-start gap-2"
-              >
-                <span className="mt-0.5">•</span>
-                <span>{v}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Corrections */}
-      {data.korrekturen?.length > 0 && (
-        <div className="bg-amber-50 rounded-2xl border border-amber-200 p-6">
-          <h3 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
-            <span>📝</span> Korrekturen
-          </h3>
-          <div className="space-y-3">
-            {data.korrekturen.map((k, i) => (
-              <div key={i} className="text-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="line-through text-red-500">
-                    {k.original}
-                  </span>
-                  <span className="text-gray-400">→</span>
-                  <span className="text-green-600 font-medium">
-                    {k.korrektur}
-                  </span>
-                </div>
-                <p className="text-amber-700 text-xs ml-4">{k.erklaerung}</p>
-              </div>
-            ))}
+        {/* Overall score */}
+        <div className="bg-white rounded-2xl border p-6 text-center">
+          <p className="text-sm text-gray-500 mb-1">Gesamtnote</p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-4xl font-bold text-gray-800">
+              {data.gesamt.toFixed(1)}
+            </span>
+            <span className="text-2xl text-gray-400">/ 5</span>
+          </div>
+          <div className="flex justify-center mt-2">
+            <Stars count={data.gesamt} />
           </div>
         </div>
-      )}
 
-      {/* Restart button */}
-      <div className="flex flex-col items-center gap-3 pt-4">
-        <button
-          onClick={onRestart}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold
-            px-8 py-3 rounded-xl transition-colors shadow-md hover:shadow-lg"
-        >
-          Neuen Dialog starten
-        </button>
+        {/* Individual scores */}
+        <div className="bg-white rounded-2xl border p-6 space-y-4">
+          <h3 className="font-semibold text-gray-700 mb-2">Einzelbewertung</h3>
+          <ScoreBar label="Grammatik" icon="⭐" score={data.grammatik} />
+          <ScoreBar label="Wortschatz" icon="📚" score={data.wortschatz} />
+          <ScoreBar
+            label="Kommunikation"
+            icon="💬"
+            score={data.kommunikation}
+          />
+          <ScoreBar
+            label="Aufgabenbewältigung"
+            icon="🎯"
+            score={data.aufgabe}
+          />
+        </div>
+
+        {/* Strengths */}
+        {data.staerken?.length > 0 && (
+          <div className="bg-green-50 rounded-2xl border border-green-200 p-6">
+            <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+              <span>✅</span> Das hast du gut gemacht
+            </h3>
+            <ul className="space-y-2">
+              {data.staerken.map((s, i) => (
+                <li
+                  key={i}
+                  className="text-sm text-green-700 flex items-start gap-2"
+                >
+                  <span className="mt-0.5">•</span>
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Improvements */}
+        {data.verbesserungen?.length > 0 && (
+          <div className="bg-blue-50 rounded-2xl border border-blue-200 p-6">
+            <h3 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+              <span>💡</span> Tipps zur Verbesserung
+            </h3>
+            <ul className="space-y-2">
+              {data.verbesserungen.map((v, i) => (
+                <li
+                  key={i}
+                  className="text-sm text-blue-700 flex items-start gap-2"
+                >
+                  <span className="mt-0.5">•</span>
+                  <span>{v}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Corrections */}
+        {data.korrekturen?.length > 0 && (
+          <div className="bg-amber-50 rounded-2xl border border-amber-200 p-6">
+            <h3 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
+              <span>📝</span> Korrekturen
+            </h3>
+            <div className="space-y-3">
+              {data.korrekturen.map((k, i) => (
+                <div key={i} className="text-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="line-through text-red-500">
+                      {k.original}
+                    </span>
+                    <span className="text-gray-400">→</span>
+                    <span className="text-green-600 font-medium">
+                      {k.korrektur}
+                    </span>
+                  </div>
+                  <p className="text-amber-700 text-xs ml-4">
+                    {k.erklaerung}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ─── Certificate section ─── */}
+        <div className="bg-purple-50 rounded-2xl border border-purple-200 p-6">
+          <h3 className="font-semibold text-purple-800 mb-4 flex items-center gap-2">
+            <span>🎓</span> Zertifikat erstellen
+          </h3>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              value={studentName}
+              onChange={(e) => setStudentName(e.target.value)}
+              placeholder="Vor- und Nachname eingeben"
+              className="flex-1 px-4 py-3 border border-purple-300 rounded-xl
+                focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent
+                bg-white text-gray-800 placeholder-gray-400"
+            />
+            <button
+              onClick={() => setShowCertificate(true)}
+              disabled={!studentName.trim()}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold
+                px-6 py-3 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed
+                whitespace-nowrap"
+            >
+              Zertifikat anzeigen
+            </button>
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex flex-col items-center gap-3 pt-4">
+          <button
+            onClick={onRestart}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold
+              px-8 py-3 rounded-xl transition-colors shadow-md hover:shadow-lg"
+          >
+            Neuen Dialog starten
+          </button>
+        </div>
       </div>
+
+      {/* ─── Certificate (shown below eval + used for print) ─── */}
+      {showCertificate && studentName.trim() && (
+        <div>
+          <Certificate
+            name={studentName.trim()}
+            data={data}
+            topic={topic}
+            situation={situation}
+            person={person}
+            date={today}
+          />
+        </div>
+      )}
     </div>
   );
 }
