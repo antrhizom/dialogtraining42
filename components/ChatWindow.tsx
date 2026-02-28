@@ -12,9 +12,10 @@ export interface Message {
 
 interface ChatWindowProps {
   messages: Message[];
+  onLastAudioEnd?: () => void;
 }
 
-export default function ChatWindow({ messages }: ChatWindowProps) {
+export default function ChatWindow({ messages, onLastAudioEnd }: ChatWindowProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,17 +40,21 @@ export default function ChatWindow({ messages }: ChatWindowProps) {
             />
           </svg>
           <p className="text-lg font-medium">Drücke den Mikrofon-Button</p>
-          <p className="text-sm">und beginne zu sprechen</p>
+          <p className="text-sm">um das Gespräch zu starten</p>
         </div>
       )}
-      {messages.map((msg) => (
-        <MessageBubble
-          key={msg.id}
-          role={msg.role}
-          content={msg.content}
-          audioUrl={msg.audioUrl}
-        />
-      ))}
+      {messages.map((msg, index) => {
+        const isLast = index === messages.length - 1;
+        return (
+          <MessageBubble
+            key={msg.id}
+            role={msg.role}
+            content={msg.content}
+            audioUrl={msg.audioUrl}
+            onAudioEnd={isLast && msg.role === "assistant" ? onLastAudioEnd : undefined}
+          />
+        );
+      })}
       <div ref={bottomRef} />
     </div>
   );

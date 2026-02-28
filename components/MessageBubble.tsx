@@ -1,17 +1,31 @@
 "use client";
 
+import { useRef, useEffect } from "react";
+
 interface MessageBubbleProps {
   role: "user" | "assistant";
   content: string;
   audioUrl?: string;
+  onAudioEnd?: () => void;
 }
 
 export default function MessageBubble({
   role,
   content,
   audioUrl,
+  onAudioEnd,
 }: MessageBubbleProps) {
   const isUser = role === "user";
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !onAudioEnd) return;
+
+    const handleEnded = () => onAudioEnd();
+    audio.addEventListener("ended", handleEnded);
+    return () => audio.removeEventListener("ended", handleEnded);
+  }, [onAudioEnd]);
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-3`}>
@@ -24,16 +38,16 @@ export default function MessageBubble({
       >
         {!isUser && (
           <p className="text-xs font-semibold text-purple-600 mb-1">
-            Anna 🎓
+            Anna
           </p>
         )}
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
         {audioUrl && (
           <audio
+            ref={audioRef}
             src={audioUrl}
             autoPlay
-            controls
-            className="mt-2 w-full h-8"
+            className="hidden"
           />
         )}
       </div>
